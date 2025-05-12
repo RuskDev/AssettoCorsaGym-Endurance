@@ -160,6 +160,19 @@ class Car(dict):
             # self['tyre_heading_vector']  = ac.getCarState(self.car_id, acsys.CS.TyreHeadingVector) -> does not work
 
 
+            # Addition Of Endurance Factors data
+            # Normalized fuel (0–1 range), assuming max fuel is 100L (or use info.static.maxFuel if available)
+            self['fuel'] = info.physics.fuel / info.static.maxFuel
+
+            # Average tyre wear from shared memory
+            tyre_wear = list(info.physics.tyreWear)
+            avg_wear = sum(tyre_wear) / len(tyre_wear)
+            self['avg_tyre_wear'] = avg_wear
+
+            # Debug log
+            logger.info(f"[PLUGIN DEBUG] Fuel: {self['fuel']*100:.2f}L, Avg Tyre Wear: {self['avg_tyre_wear']:.3f}, Max Fuel: {info.static.maxFuel}L")
+
+
     def distance_from_lanes(self, track):
 
         pos = ac.getCarState(self.car_id, acsys.CS.WorldPosition)
