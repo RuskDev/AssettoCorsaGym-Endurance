@@ -716,8 +716,9 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
             return obs
 
         obs = get_basic_obs(state)
-        if "fuel" in state and "avg_tyre_wear" in state:
-            logger.info(f"[OBS DEBUG] Fuel: {state['fuel']:.3f}, Tyre Wear: {state['avg_tyre_wear']:.3f}")
+        # Print for debug
+        # if "fuel" in state and "avg_tyre_wear" in state:
+        #     logger.info(f"[OBS DEBUG] Fuel: {state['fuel']:.3f}, Tyre Wear: {state['avg_tyre_wear']:.3f}")
 
 
         if state["out_of_track"]:
