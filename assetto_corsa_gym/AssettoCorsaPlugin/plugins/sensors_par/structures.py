@@ -169,11 +169,12 @@ class Car(dict):
             self['fuel'] = fuel / max_fuel
             self['avg_tyre_wear'] = avg_wear / 100 # normalizing to [0,1]
 
-            try:
-                logger.info("[PLUGIN DEBUG] Fuel: {:.2f}L, Avg Tyre Wear: {:.3f}, Max Fuel: {:.1f}L".format(
-                    fuel, avg_wear, max_fuel))
-            except Exception:
-                logger.exception("Failed to log fuel/wear debug info")
+            # For debugging
+            # try:
+            #     logger.info("[PLUGIN DEBUG] Fuel: {:.2f}L, Avg Tyre Wear: {:.3f}, Max Fuel: {:.1f}L".format(
+            #         fuel, avg_wear, max_fuel))
+            # except Exception:
+            #     logger.exception("Failed to log fuel/wear debug info")
 
 
 
