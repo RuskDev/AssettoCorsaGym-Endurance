@@ -156,6 +156,8 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         'accStatus': 1.,
         'brakeStatus': 1.,
         'actualGear': 8.,
+        'fuel': 1.,
+        'avg_tyre_wear': 1.,
     }
 
     obs_enabled_channels = [
@@ -188,6 +190,8 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         # 'Dy_rl',
         # 'Dy_fr',
         # 'Dy_fl',
+        'fuel',
+        'avg_tyre_wear',
     ]
 
     obs_extra_enabled_channels = [
@@ -712,6 +716,9 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
             return obs
 
         obs = get_basic_obs(state)
+        if "fuel" in state and "avg_tyre_wear" in state:
+            logger.info(f"[OBS DEBUG] Fuel: {state['fuel']:.3f}, Tyre Wear: {state['avg_tyre_wear']:.3f}")
+
 
         if state["out_of_track"]:
             obs = np.hstack([obs, 1.0])
