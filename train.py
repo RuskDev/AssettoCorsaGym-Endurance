@@ -73,12 +73,14 @@ def main():
     assert device.type == "cuda", "Only cuda is supported"
 
     if args.algo == 'discor':
+        print("Using DisCor")
         algo = DisCor(
             state_dim=env.observation_space.shape[0],
             action_dim=env.action_space.shape[0],
             device=device, seed=config.seed,
             **OmegaConf.to_container(config.SAC), **OmegaConf.to_container(config.DisCor))
     elif args.algo == 'sac':
+        print("Using SAC")
         algo = SAC(
             state_dim=env.observation_space.shape[0],
             action_dim=env.action_space.shape[0],
@@ -100,7 +102,7 @@ def main():
         wandb_logger = None
 
     agent = Agent(env=env, test_env=env, algo=algo, log_dir=config.work_dir,
-                  device=device, seed=config.seed, **config.Agent, wandb_logger=wandb_logger)
+                  device=device, seed=config.seed, **config.Agent, wandb_logger=wandb_logger, save_final_buffer=True) #Added save final buffer to save the final buffer
 
     if not args.test and config.load_offline_data:
         data_config_file = os.path.abspath(r"./ac_offline_train_paths.yml")
@@ -128,6 +130,7 @@ def main():
 
     if config.pre_train:
         agent.pre_train()
+        logger.info("done pre training training")
 
     if args.load_path is not None:
         load_buffer = False if args.test else True
