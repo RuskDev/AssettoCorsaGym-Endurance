@@ -161,16 +161,20 @@ class Car(dict):
 
 
             # Addition Of Endurance Factors data
-            # Normalized fuel (0–1 range), assuming max fuel is 100L (or use info.static.maxFuel if available)
-            self['fuel'] = info.physics.fuel / info.static.maxFuel
-
-            # Average tyre wear from shared memory
+            fuel = info.physics.fuel
+            max_fuel = info.static.maxFuel
             tyre_wear = list(info.physics.tyreWear)
             avg_wear = sum(tyre_wear) / len(tyre_wear)
+
+            self['fuel'] = fuel / max_fuel
             self['avg_tyre_wear'] = avg_wear
 
-            # Debug log
-            logger.info(f"[PLUGIN DEBUG] Fuel: {self['fuel']*100:.2f}L, Avg Tyre Wear: {self['avg_tyre_wear']:.3f}, Max Fuel: {info.static.maxFuel}L")
+            try:
+                logger.info("[PLUGIN DEBUG] Fuel: {:.2f}L, Avg Tyre Wear: {:.3f}, Max Fuel: {:.1f}L".format(
+                    fuel, avg_wear, max_fuel))
+            except Exception:
+                logger.exception("Failed to log fuel/wear debug info")
+
 
 
     def distance_from_lanes(self, track):
