@@ -1,6 +1,15 @@
+<h1>This is a bachelor research thesis at the University of Twente building on the amazing work done by
+Adrian Remonda,  Nicklas Hansen,  Ayoub Raji,  Nicola Musiu,
+Marko Bertogna,  Eduardo E. Veas,  Xiaolong Wang
+
+The readmes will be changed later to better reflect this
+<h1>
+
+
+
 <h1>Assetto Corsa Gym</span></h1>
 
-Official implementation of the paper:
+not the Official implementation of the paper:
 [A Simulation Benchmark for Autonomous Racing with Large-Scale Human Data](https://assetto-corsa-gym.github.io/)
 
 <img src="docs/images/sim_render_small.jpg" width="24%"><img src="docs/images/sim_tug2_small.jpg" width="24%"><img src="docs/images/sim_tug_small.jpg" width="24%"><img src="docs/images/ucsd_sim_small.jpg" width="24%">
