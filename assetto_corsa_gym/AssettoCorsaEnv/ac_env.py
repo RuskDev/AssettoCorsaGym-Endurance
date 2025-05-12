@@ -708,11 +708,17 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         if history is None use the current episode history, else use the history passed as argument.append()
         """
         def get_basic_obs(state):
-            obs = np.array( [state[ch] for ch in self.obs_enabled_channels] )
-            obs = obs / self.obs_channels_scales
+            obs = []
+            for ch in self.obs_enabled_channels:
+                if ch in ("fuel", "avg_tyre_wear"):
+                    obs.append(state.get(ch, 0.0))  # fallback to 0 if missing
+                else:
+                    obs.append(state[ch])  # raise KeyError if something is missing unexpectedly
+
+            obs = np.array(obs) / self.obs_channels_scales
 
             if self.enable_sensors:
-                obs = np.hstack([obs, state['sensors'] / MAX_RAY_LEN ])
+                obs = np.hstack([obs, state['sensors'] / MAX_RAY_LEN])
             return obs
 
         obs = get_basic_obs(state)
