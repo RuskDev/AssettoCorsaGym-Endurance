@@ -246,6 +246,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.max_steer_rate = self.config.max_steer_rate
         self.use_obs_extra = self.config.use_obs_extra
         self.use_reference_line_in_reward = self.config.use_reference_line_in_reward
+        self.endurance_testing = self.config.endurance_testing
 
         # from the config
         self.use_ac_out_of_track = self.config.use_ac_out_of_track
@@ -711,7 +712,9 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
             obs = []
             for ch in self.obs_enabled_channels:
                 if ch in ("fuel", "avg_tyre_wear"):
-                    obs.append(state.get(ch, 0.0))  # fallback to 0 if missing
+                    default_value = 1.0 + np.random.normal(0, 0.01)  # small noise around 1.0
+                    default_value = np.clip(default_value, 0.95, 1.0)  # never above 1
+                    obs.append(state.get(ch, default_value)) # fallback to around 1
                 else:
                     obs.append(state[ch])  # raise KeyError if something is missing unexpectedly
 
