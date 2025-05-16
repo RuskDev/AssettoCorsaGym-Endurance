@@ -137,9 +137,17 @@ def main():
         agent.load(args.load_path, load_buffer=load_buffer)
 
     if args.test:
-        agent._env.set_eval_mode()
-        agent.evaluate()
-        logger.info("done evaluation")
+        if config.endurance_eval:
+            print("Starting endurance evaluation")
+            agent._env.set_eval_mode()
+            agent.evaluate(endurance_mode=True)
+            logger.info("done evaluation")
+        else:
+            agent._env.set_eval_mode()
+            agent.evaluate()
+            logger.info("done evaluation")
+
+
     else:
         agent.run()
         logger.info("done training")

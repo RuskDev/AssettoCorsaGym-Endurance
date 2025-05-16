@@ -247,26 +247,100 @@ class Agent:
         pd.DataFrame(self.episodes_stats).to_csv(os.path.join(self._log_dir, 'summary.csv'), index=None)
         logger.info(f'Episode done. Took {ep_time:.2f}s.  Steps per episode: {episode_steps}. Buffer size: {len(self._replay_buffer)} fps: {episode_steps/ep_time:.2f}')
 
-    def evaluate(self):
+    def evaluate(self, endurance_mode=False):
+        total_return = 0.0
+        all_ep_stats = []
+
         try:
-            total_return = 0.0
-            for _ in range(self._num_eval_episodes):
+            for episode_idx in range(self._num_eval_episodes):
                 state = self._test_env.reset()
                 episode_return = 0.0
                 done = False
 
-                while (not done):
+                if endurance_mode:
+                    fuel_start = self._test_env.states[-1].get("fuel", 1.0)
+                    tyre_start = self._test_env.states[-1].get("avg_tyre_wear", 1.0)
+                    lap_start = self._test_env.states[-1].get("LapCount", 0)
+                    step_count = 0
+                    fuel_used_per_lap = []
+                    tyre_used_per_lap = []
+                    lap_times = []
+                    last_lap_time = time.time()
+
+                    prev_lap = lap_start
+                    prev_fuel = fuel_start
+                    prev_tyre = tyre_start
+
+                while not done:
                     action, entropies = self._algo.exploit(state)
                     next_state, reward, done, info = self._test_env.step(action)
                     self._test_env.states[-1]["entropies"] = entropies.cpu().numpy().item()
                     episode_return += reward
                     state = next_state
+
+                    if endurance_mode:
+                        step_count += 1
+                        lap_now = self._test_env.states[-1].get("LapCount", prev_lap)
+
+                        if lap_now > prev_lap:
+                            fuel_now = self._test_env.states[-1].get("fuel", prev_fuel)
+                            tyre_now = self._test_env.states[-1].get("avg_tyre_wear", prev_tyre)
+                            fuel_used = prev_fuel - fuel_now
+                            tyre_used = prev_tyre - tyre_now
+                            fuel_used_per_lap.append(fuel_used)
+                            tyre_used_per_lap.append(tyre_used)
+
+                            lap_time = time.time() - last_lap_time
+                            lap_times.append(lap_time)
+                            last_lap_time = time.time()
+
+                            prev_fuel = fuel_now
+                            prev_tyre = tyre_now
+                            prev_lap = lap_now
+
                 total_return += episode_return
+
+                if endurance_mode:
+                    fuel_end = self._test_env.states[-1].get("fuel", fuel_start)
+                    tyre_end = self._test_env.states[-1].get("avg_tyre_wear", tyre_start)
+                    fuel_used_total = fuel_start - fuel_end
+                    tyre_used_total = tyre_start - tyre_end
+
+                    env_ep_stats = {
+                        "episode_idx": episode_idx,
+                        "episode_return": episode_return,
+                        "fuel_start": fuel_start,
+                        "fuel_end": fuel_end,
+                        "fuel_used_total": fuel_used_total,
+                        "tyre_start": tyre_start,
+                        "tyre_end": tyre_end,
+                        "tyre_used_total": tyre_used_total,
+                        "steps": step_count,
+                        "fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
+                        "tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
+                        "num_laps": prev_lap - lap_start,
+                        "fuel_used_per_lap": fuel_used_per_lap,
+                        "tyre_used_per_lap": tyre_used_per_lap,
+                        "lap_times": lap_times,
+                    }
+                    all_ep_stats.append(env_ep_stats)
+
         except TimeoutError:
             logger.exception("Agent TimeoutError")
+
         finally:
-            env_ep_stats = self._env.close()
-            pd.DataFrame([env_ep_stats]).to_csv(os.path.join(self._log_dir, 'eval_summary.csv'), index=None)
+            if endurance_mode:
+                filename = 'eval_endurance.csv'
+                df = pd.DataFrame(all_ep_stats)
+                df.to_csv(os.path.join(self._log_dir, filename), index=False)
+                logger.info(f"Saved endurance evaluation results to {filename}")
+            else:
+                env_ep_stats = self._env.close()
+                pd.DataFrame([env_ep_stats]).to_csv(os.path.join(self._log_dir, 'eval_summary.csv'), index=None)
+                logger.info(f"Saved normal evaluation results to eval_summary.csv")
+
+            return total_return
+
 
     def __del__(self):
         self._env.close()
