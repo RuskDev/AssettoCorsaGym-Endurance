@@ -324,6 +324,7 @@ class Agent:
                         "lap_times": lap_times,
                     }
                     all_ep_stats.append(env_ep_stats)
+                    print(f"Episode {episode_idx}: Return: {episode_return:.2f}, Fuel used: {fuel_used_total:.2f}, Tyre used: {tyre_used_total:.2f}, Steps: {step_count}, Laps: {prev_lap - lap_start}")
 
         except TimeoutError:
             logger.exception("Agent TimeoutError")
