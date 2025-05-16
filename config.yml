@@ -86,4 +86,4 @@ AssettoCorsa:
   color_mode: "gray"           # Options: "gray" or "bgr"
   use_obs_extra: False
   endurance_reward: False
-  endurance_obs: False
+  endurance_obs: True
