@@ -246,7 +246,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.max_steer_rate = self.config.max_steer_rate
         self.use_obs_extra = self.config.use_obs_extra
         self.use_reference_line_in_reward = self.config.use_reference_line_in_reward
-        self.endurance_testing = self.config.endurance_testing
+        self.endurance_reward = self.config.endurance_reward
 
         # from the config
         self.use_ac_out_of_track = self.config.use_ac_out_of_track
@@ -472,7 +472,10 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         #
         #   Reward
         #
-        self.state["reward"] = self.get_reward(self.state, actions_diff).item()
+        if self.endurance_reward:
+            self.state["reward"] = self.get_reward_endurance(self.state, actions_diff).item()
+        else:
+            self.state["reward"] = self.get_reward(self.state, actions_diff).item()
 
         if (self.ep_steps % 50) == 0:
             logger.debug(f't: {self.ep_steps} speed: {state["speed"]:.2f}, oot: {state["out_of_track"]} '
@@ -623,6 +626,9 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
             r -= action_difference_penalty * self.penalize_actions_diff_coef
         r = r.reshape(-1)  # [N, 1] -> [N]
         return r
+    
+    def get_reward_endurance(self, state, actions_diff):
+        pass
 
     def recover_car(self):
         logger.info("Recover car")

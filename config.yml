@@ -4,6 +4,7 @@ dataset_path: null          # Path to the datasets, null means it will be overri
 work_dir: null              # Path to run the model from (default: None)
 task: AssettoCorsaGym
 seed: 0
+endurance_eval : True
 
 # wandb
 disable_wandb: False
@@ -51,7 +52,7 @@ AssettoCorsa:
   ego_sampling_freq: 25     # in Hz
   max_episode_py_time: 600. # in seconds
   gap_const: 12.
-  eval_number_of_laps: 4    # including out lap which is incomplete
+  eval_number_of_laps: 25    # including out lap which is incomplete
   save_lap_csv: False
   remote_machine_ip: "localhost"   # "192.168.0.1" # "localhost"
   ego_server_port: 2345
@@ -84,3 +85,4 @@ AssettoCorsa:
   final_image_height: 240     # Final image height in pixels
   color_mode: "gray"           # Options: "gray" or "bgr"
   use_obs_extra: False
+  endurance_reward: False
