@@ -190,8 +190,6 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         # 'Dy_rl',
         # 'Dy_fr',
         # 'Dy_fl',
-        'fuel',
-        'avg_tyre_wear',
     ]
 
     obs_extra_enabled_channels = [
@@ -247,10 +245,15 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.use_obs_extra = self.config.use_obs_extra
         self.use_reference_line_in_reward = self.config.use_reference_line_in_reward
         self.endurance_reward = self.config.endurance_reward
+        self.endurance_obs = self.config.endurance_obs
 
         # from the config
         self.use_ac_out_of_track = self.config.use_ac_out_of_track
         self.enable_out_of_track_penalty = self.config.enable_out_of_track_penalty # oot penalization in the reward function
+
+        
+        if self.endurance_obs:
+            self.obs_enabled_channels += ['fuel', 'avg_tyre_wear']
 
         self.penalize_actions_diff = config.penalize_actions_diff
         self.penalize_actions_diff_coef = config.penalize_actions_diff_coef
