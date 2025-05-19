@@ -295,13 +295,14 @@ class Agent:
 
                             # ✅ WandB: Log each lap's usage as an individual point
                             if self.wandb_logger:
-                                self.wandb_logger.log({
-                                    "lap/fuel_used": fuel_used,
-                                    "lap/tyre_used": tyre_used,
-                                    "lap/time": lap_time,
-                                    "lap/episode_idx": episode_idx,
-                                    "lap/lap_idx": lap_now - lap_start,
-                                })
+                               self.wandb_logger.log({
+                                    "fuel_used": fuel_used,
+                                    "tyre_used": tyre_used,
+                                    "lap_time": lap_time,
+                                    "episode_idx": episode_idx,
+                                    "lap_idx": lap_now - lap_start,
+                                }, category="lap", step=step_count)
+
 
                             last_lap_time = time.time()
                             prev_fuel = fuel_now
@@ -351,7 +352,7 @@ class Agent:
                                 "eval/fuel_used_per_lap": fuel_used_per_lap,
                                 "eval/tyre_used_per_lap": tyre_used_per_lap,
                                 "eval/lap_times": lap_times,
-                            })
+                            }, category="eval", step=episode_idx)
 
         except Exception as e:
             logger.exception(f"Evaluation failed with error: {e}")
