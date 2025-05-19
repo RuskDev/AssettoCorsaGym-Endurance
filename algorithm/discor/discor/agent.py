@@ -302,7 +302,7 @@ class Agent:
                                     "lap_time": lap_time,
                                     "episode_idx": episode_idx,
                                     "lap_idx": lap_now - lap_start,
-                                }, category="lap")
+                                })
 
 
                             last_lap_time = time.time()
@@ -352,7 +352,7 @@ class Agent:
                                 "fuel_used_per_lap": fuel_used_per_lap,
                                 "tyre_used_per_lap": tyre_used_per_lap,
                                 "lap_times": lap_times,
-                            }, category="eval")
+                            })
 
         except Exception as e:
             logger.exception(f"Evaluation failed with error: {e}")
