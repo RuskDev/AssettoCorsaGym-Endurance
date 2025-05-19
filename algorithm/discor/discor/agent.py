@@ -298,6 +298,19 @@ class Agent:
                             prev_tyre = tyre_now
                             prev_lap = lap_now
 
+                        if self.wandb_logger:
+                            self.wandb_logger.log({
+                                "eval/episode_idx": episode_idx,
+                                "eval/return": episode_return,
+                                "eval/fuel_used_total": fuel_used_total,
+                                "eval/tyre_used_total": tyre_used_total,
+                                "eval/steps": step_count,
+                                "eval/laps": prev_lap - lap_start,
+                                "eval/fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
+                                "eval/tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
+                            })
+
+
                 total_return += episode_return
 
                 if endurance_mode:
