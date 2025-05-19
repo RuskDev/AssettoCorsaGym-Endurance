@@ -920,4 +920,5 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
 
     def set_eval_mode(self):
         self.max_laps_number = self.config.eval_number_of_laps
+        self._max_episode_steps = self.config.eval_max_steps
         self.use_ac_out_of_track = True

@@ -53,6 +53,7 @@ AssettoCorsa:
   max_episode_py_time: 600. # in seconds
   gap_const: 12.
   eval_number_of_laps: 25    # including out lap which is incomplete
+  eval_max_steps: 690
   save_lap_csv: False
   remote_machine_ip: "localhost"   # "192.168.0.1" # "localhost"
   ego_server_port: 2345
