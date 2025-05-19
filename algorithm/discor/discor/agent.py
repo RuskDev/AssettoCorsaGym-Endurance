@@ -295,13 +295,14 @@ class Agent:
 
                             # ✅ WandB: Log each lap's usage as an individual point
                             if self.wandb_logger:
-                               self.wandb_logger.log({
+                                self.wandb_logger.log({
+                                    "step": step_count,
                                     "fuel_used": fuel_used,
                                     "tyre_used": tyre_used,
                                     "lap_time": lap_time,
                                     "episode_idx": episode_idx,
                                     "lap_idx": lap_now - lap_start,
-                                }, category="lap", step=step_count)
+                                }, category="lap")
 
 
                             last_lap_time = time.time()
@@ -339,20 +340,19 @@ class Agent:
 
                     if self.wandb_logger:
                             self.wandb_logger.log({
-                                "eval/episode_idx": episode_idx,
-                                "eval/return": episode_return,
-                                "eval/fuel_used_total": fuel_used_total,
-                                "eval/tyre_used_total": tyre_used_total,
-                                "eval/steps": step_count,
-                                "eval/laps": prev_lap - lap_start,
-                                "eval/fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
-                                "eval/tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
-
-                                # 📊 Full-lap plots
-                                "eval/fuel_used_per_lap": fuel_used_per_lap,
-                                "eval/tyre_used_per_lap": tyre_used_per_lap,
-                                "eval/lap_times": lap_times,
-                            }, category="eval", step=episode_idx)
+                                "step": episode_idx,
+                                "episode_idx": episode_idx,
+                                "return": episode_return,
+                                "fuel_used_total": fuel_used_total,
+                                "tyre_used_total": tyre_used_total,
+                                "steps": step_count,
+                                "laps": prev_lap - lap_start,
+                                "fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
+                                "tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
+                                "fuel_used_per_lap": fuel_used_per_lap,
+                                "tyre_used_per_lap": tyre_used_per_lap,
+                                "lap_times": lap_times,
+                            }, category="eval")
 
         except Exception as e:
             logger.exception(f"Evaluation failed with error: {e}")
