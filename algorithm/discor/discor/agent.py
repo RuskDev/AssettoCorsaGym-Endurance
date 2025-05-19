@@ -307,9 +307,7 @@ class Agent:
                             prev_fuel = fuel_now
                             prev_tyre = tyre_now
                             prev_lap = lap_now
-
-
-
+                print("Episode Done")
                 total_return += episode_return
 
                 if endurance_mode:
@@ -355,8 +353,8 @@ class Agent:
                                 "eval/lap_times": lap_times,
                             })
 
-        except TimeoutError:
-            logger.exception("Agent TimeoutError")
+        except Exception as e:
+            logger.exception(f"Evaluation failed with error: {e}")
 
         finally:
             if endurance_mode:
