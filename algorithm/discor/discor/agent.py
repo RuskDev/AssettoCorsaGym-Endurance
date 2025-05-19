@@ -292,11 +292,22 @@ class Agent:
 
                             lap_time = time.time() - last_lap_time
                             lap_times.append(lap_time)
-                            last_lap_time = time.time()
 
+                            # ✅ WandB: Log each lap's usage as an individual point
+                            if self.wandb_logger:
+                                self.wandb_logger.log({
+                                    "lap/fuel_used": fuel_used,
+                                    "lap/tyre_used": tyre_used,
+                                    "lap/time": lap_time,
+                                    "lap/episode_idx": episode_idx,
+                                    "lap/lap_idx": lap_now - lap_start,
+                                })
+
+                            last_lap_time = time.time()
                             prev_fuel = fuel_now
                             prev_tyre = tyre_now
-                            prev_lap = lap_now   
+                            prev_lap = lap_now
+
 
 
                 total_return += episode_return
@@ -337,6 +348,11 @@ class Agent:
                                 "eval/laps": prev_lap - lap_start,
                                 "eval/fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
                                 "eval/tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
+
+                                # 📊 Full-lap plots
+                                "eval/fuel_used_per_lap": fuel_used_per_lap,
+                                "eval/tyre_used_per_lap": tyre_used_per_lap,
+                                "eval/lap_times": lap_times,
                             })
 
         except TimeoutError:
