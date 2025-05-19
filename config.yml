@@ -9,7 +9,7 @@ endurance_eval : True
 # wandb
 disable_wandb: False
 wandb_entity: null  # user
-wandb_project: sac
+wandb_project: ThesisTraining
 wandb_silent: False
 exp_name: null
 task_title: null
@@ -20,23 +20,23 @@ action_dim: null  # placeholder
 steps: null # placeholder
 
 Agent:
-  num_steps: 400_000 #8_000_000
+  num_steps: 2_000_000 #8_000_000
   batch_size: 128
-  memory_size: 6_000_000 #8_000_000
-  offline_buffer_size: 8_000_000 #12_000_000
+  memory_size: 8_000_000 #8_000_000
+  offline_buffer_size: 12_000_000 #12_000_000
   use_offline_buffer: True # offline dual buffer
   update_interval: 1
   start_steps: 2000
   log_interval: 10
   eval_interval: 0
   num_eval_episodes: 1
-  checkpoint_freq: 100_000
+  checkpoint_freq: 400_000
 
 SAC:
   gamma: 0.992
   nstep: 3
   policy_lr: 0.0003
-  q_lr: 0.0003
+  q_lr: 0.0003 #0.0001 - suggested by sup.
   entropy_lr: 0.0003
   policy_hidden_units: [256, 256, 256]
   q_hidden_units: [256, 256, 256]
@@ -88,3 +88,4 @@ AssettoCorsa:
   use_obs_extra: False
   endurance_reward: False
   endurance_obs: True
+  tire_avg: False

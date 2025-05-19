@@ -163,18 +163,18 @@ class Car(dict):
             # Addition Of Endurance Factors data
             fuel = info.physics.fuel
             max_fuel = info.static.maxFuel
-            tyre_wear = list(info.physics.tyreWear)
+            tyre_wear = list(info.physics.tyreWear)  # [fl, fr, rl, rr]
             avg_wear = sum(tyre_wear) / len(tyre_wear)
 
+            # Normalized values
             self['fuel'] = fuel / max_fuel
-            self['avg_tyre_wear'] = avg_wear / 100 # normalizing to [0,1]
+            self['avg_tyre_wear'] = avg_wear / 100  # normalized to [0,1]
 
-            # For debugging
-            # try:
-            #     logger.info("[PLUGIN DEBUG] Fuel: {:.2f}L, Avg Tyre Wear: {:.3f}, Max Fuel: {:.1f}L".format(
-            #         fuel, avg_wear, max_fuel))
-            # except Exception:
-            #     logger.exception("Failed to log fuel/wear debug info")
+            # NEW: Add individual normalized tire wears
+            self['tyre_wear_fl'] = tyre_wear[0] / 100
+            self['tyre_wear_fr'] = tyre_wear[1] / 100
+            self['tyre_wear_rl'] = tyre_wear[2] / 100
+            self['tyre_wear_rr'] = tyre_wear[3] / 100
 
 
 

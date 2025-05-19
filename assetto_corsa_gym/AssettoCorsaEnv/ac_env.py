@@ -158,6 +158,10 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         'actualGear': 8.,
         'fuel': 1.,
         'avg_tyre_wear': 1.,
+        'tyre_wear_fl' : 1.,
+        'tyre_wear_fr' : 1.,
+        'tyre_wear_rl' : 1.,
+        'tyre_wear_rr' : 1.,
     }
 
     obs_enabled_channels = [
@@ -246,6 +250,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.use_reference_line_in_reward = self.config.use_reference_line_in_reward
         self.endurance_reward = self.config.endurance_reward
         self.endurance_obs = self.config.endurance_obs
+        self.tire_avg = self.config.tire_avg
 
         # from the config
         self.use_ac_out_of_track = self.config.use_ac_out_of_track
@@ -253,7 +258,10 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
 
         
         if self.endurance_obs:
-            self.obs_enabled_channels += ['fuel', 'avg_tyre_wear']
+            if self.tire_avg:
+                self.obs_enabled_channels += ['fuel', 'avg_tyre_wear']
+            else:
+                self.obs_enabled_channels += ['fuel', 'tyre_wear_fl', 'tyre_wear_fr', 'tyre_wear_rl', 'tyre_wear_rr']
 
         self.penalize_actions_diff = config.penalize_actions_diff
         self.penalize_actions_diff_coef = config.penalize_actions_diff_coef
