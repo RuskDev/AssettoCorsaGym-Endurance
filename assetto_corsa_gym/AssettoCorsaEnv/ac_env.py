@@ -728,7 +728,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         def get_basic_obs(state):
             obs = []
             for ch in self.obs_enabled_channels:
-                if ch in ("fuel", "avg_tyre_wear", "tyre_wear_fl", "tyre_wear_fr'+", "tyre_wear_rl", "tyre_wear_rr"):
+                if ch in ("fuel", "avg_tyre_wear", "tyre_wear_fl", "tyre_wear_fr", "tyre_wear_rl", "tyre_wear_rr"):
                     default_value = 1.0 + np.random.normal(0, 0.01)  # small noise around 1.0
                     default_value = np.clip(default_value, 0.95, 1.0)  # never above 1
                     obs.append(state.get(ch, default_value)) # fallback to around 1
