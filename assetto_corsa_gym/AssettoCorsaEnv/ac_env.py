@@ -669,11 +669,11 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         tyre_wear = state.get("avg_tyre_wear", 1.0)
 
         # Fallback for first step
-        if self.prev_fuel is None or self.prev_tyre_wear is None:
+        if self.prev_fuel is None or self.prev_avg_tyre_wear is None:
             return base_r
 
         fuel_used = self.prev_fuel - fuel
-        tyre_used = self.prev_tyre_wear - tyre_wear
+        tyre_used = self.prev_avg_tyre_wear - tyre_wear
 
         # Hyperparameters
         alpha = self.fuel_penaly_alpha   # Fuel penalty coefficient
@@ -689,11 +689,11 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         tyre_wear = state.get("avg_tyre_wear", 1.0)
 
         # Fallback for first step
-        if self.prev_fuel is None or self.prev_tyre_wear is None:
+        if self.prev_fuel is None or self.prev_avg_tyre_wear is None:
             return np.array([progress / 300.0])  # Basic reward if no prior
 
         fuel_used = self.prev_fuel - fuel
-        tyre_used = self.prev_tyre_wear - tyre_wear
+        tyre_used = self.prev_avg_tyre_wear - tyre_wear
         resource_used = fuel_used + tyre_used + 1e-5  # prevent div by 0
 
         efficiency = progress / resource_used
