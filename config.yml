@@ -86,6 +86,8 @@ AssettoCorsa:
   final_image_height: 240     # Final image height in pixels
   color_mode: "gray"           # Options: "gray" or "bgr"
   use_obs_extra: False
-  endurance_reward: False
+  endurance_reward: True
   endurance_obs: True
   tire_avg: False
+  fuel_penaly_alpha: 2.0 
+  tire_penalty_beta: 1.5

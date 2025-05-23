@@ -251,6 +251,8 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.endurance_reward = self.config.endurance_reward
         self.endurance_obs = self.config.endurance_obs
         self.tire_avg = self.config.tire_avg
+        self.fuel_penaly_alpha = self.config.fuel_penaly_alpha
+        self.tire_penalty_beta = self.config.tire_penalty_beta
 
         # from the config
         self.use_ac_out_of_track = self.config.use_ac_out_of_track
@@ -262,6 +264,15 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
                 self.obs_enabled_channels += ['fuel', 'avg_tyre_wear']
             else:
                 self.obs_enabled_channels += ['fuel', 'tyre_wear_fl', 'tyre_wear_fr', 'tyre_wear_rl', 'tyre_wear_rr']
+
+        #For the endurance reward
+        
+        self.prev_fuel = None
+        self.prev_avg_tyre_wear = None
+        self.prev_tyre_wear_fl = None
+        self.prev_tyre_wear_fr = None
+        self.prev_tyre_wear_rl = None
+        self.prev_tyre_wear_rr = None
 
         self.penalize_actions_diff = config.penalize_actions_diff
         self.penalize_actions_diff_coef = config.penalize_actions_diff_coef
@@ -484,7 +495,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         #   Reward
         #
         if self.endurance_reward:
-            self.state["reward"] = self.get_reward_endurance(self.state, actions_diff).item()
+            self.state["reward"] = self.get_reward_endurance_vA(self.state, actions_diff).item()
         else:
             self.state["reward"] = self.get_reward(self.state, actions_diff).item()
 
@@ -498,6 +509,19 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         self.info = buf_infos
         self.ep_reward += self.state["reward"]
         self.states.append(self.state.copy())
+
+
+        # --- Track endurance metrics across timesteps ---
+        self.prev_fuel = self.state.get("fuel", 1.0)
+
+        if self.tire_avg:
+            self.prev_avg_tyre_wear = self.state.get("avg_tyre_wear", 1.0)
+        else:
+            self.prev_tyre_wear_fl = self.state.get("tyre_wear_fl", 1.0)
+            self.prev_tyre_wear_fr = self.state.get("tyre_wear_fr", 1.0)
+            self.prev_tyre_wear_rl = self.state.get("tyre_wear_rl", 1.0)
+            self.prev_tyre_wear_rr = self.state.get("tyre_wear_rr", 1.0)
+
         return obs, self.state["reward"], self.state["done"], buf_infos
 
     def expand_state(self, state):
@@ -637,9 +661,44 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
             r -= action_difference_penalty * self.penalize_actions_diff_coef
         r = r.reshape(-1)  # [N, 1] -> [N]
         return r
+
+    def get_reward_endurance_vA(self, state, actions_diff):
+        base_r = self.get_reward(state, actions_diff)
+
+        fuel = state.get("fuel", 1.0)
+        tyre_wear = state.get("avg_tyre_wear", 1.0)
+
+        # Fallback for first step
+        if self.prev_fuel is None or self.prev_tyre_wear is None:
+            return base_r
+
+        fuel_used = self.prev_fuel - fuel
+        tyre_used = self.prev_tyre_wear - tyre_wear
+
+        # Hyperparameters
+        alpha = self.fuel_penaly_alpha   # Fuel penalty coefficient
+        beta = self.tire_penalty_beta   # Tire penalty coefficient
+
+        endurance_penalty = alpha * fuel_used + beta * tyre_used
+        r = base_r - endurance_penalty
+        return np.array([r])
     
-    def get_reward_endurance(self, state, actions_diff):
-        pass
+    def get_reward_endurance_vB(self, state, actions_diff):
+        progress = 3.6 * state["speed"]  # speed in km/h
+        fuel = state.get("fuel", 1.0)
+        tyre_wear = state.get("avg_tyre_wear", 1.0)
+
+        # Fallback for first step
+        if self.prev_fuel is None or self.prev_tyre_wear is None:
+            return np.array([progress / 300.0])  # Basic reward if no prior
+
+        fuel_used = self.prev_fuel - fuel
+        tyre_used = self.prev_tyre_wear - tyre_wear
+        resource_used = fuel_used + tyre_used + 1e-5  # prevent div by 0
+
+        efficiency = progress / resource_used
+        r = 0.001 * efficiency  # normalize
+        return np.array([r])
 
     def recover_car(self):
         logger.info("Recover car")
