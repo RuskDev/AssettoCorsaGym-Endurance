@@ -704,6 +704,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
 
         base_r = self.get_reward(state, actions_diff)
         efficiency = progress / resource_used
+        efficiency = max(efficiency, 0.0)
         log_eff = np.log1p(efficiency) / 100.0
         reward = 0.5 * base_r + 0.5 * log_eff
         return reward
