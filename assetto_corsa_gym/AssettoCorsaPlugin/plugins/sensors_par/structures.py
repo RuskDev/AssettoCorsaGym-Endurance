@@ -166,6 +166,8 @@ class Car(dict):
             tyre_wear = list(info.physics.tyreWear)  # [fl, fr, rl, rr]
             avg_wear = sum(tyre_wear) / len(tyre_wear)
 
+            distanceTraveled = info.physics.distanceTraveled
+
             # Normalized values
             self['fuel'] = fuel / max_fuel
             self['avg_tyre_wear'] = avg_wear / 100  # normalized to [0,1]
@@ -175,6 +177,9 @@ class Car(dict):
             self['tyre_wear_fr'] = tyre_wear[1] / 100
             self['tyre_wear_rl'] = tyre_wear[2] / 100
             self['tyre_wear_rr'] = tyre_wear[3] / 100
+
+            
+            self['distanceTraveled'] = distanceTraveled
 
 
 
