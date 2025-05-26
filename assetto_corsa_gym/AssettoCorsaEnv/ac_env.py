@@ -268,6 +268,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         #For the endurance reward
         
         self.prev_fuel = None
+        self.prev_distance_traveled = None
         self.prev_avg_tyre_wear = None
         self.prev_tyre_wear_fl = None
         self.prev_tyre_wear_fr = None
@@ -495,7 +496,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         #   Reward
         #
         if self.endurance_reward:
-            self.state["reward"] = self.get_reward_endurance_vA(self.state, actions_diff).item()
+            self.state["reward"] = self.get_reward_endurance_vB(self.state, actions_diff).item()
         else:
             self.state["reward"] = self.get_reward(self.state, actions_diff).item()
 
@@ -513,6 +514,8 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
 
         # --- Track endurance metrics across timesteps ---
         self.prev_fuel = self.state.get("fuel", 1.0)
+        self.prev_distance_traveled = self.state.get("distanceTraveled", 0.0)
+
 
         if self.tire_avg:
             self.prev_avg_tyre_wear = self.state.get("avg_tyre_wear", 1.0)
@@ -684,21 +687,25 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         return np.array([r])
     
     def get_reward_endurance_vB(self, state, actions_diff):
-        progress = 3.6 * state["speed"]  # speed in km/h
-        fuel = state.get("fuel", 1.0)
-        tyre_wear = state.get("avg_tyre_wear", 1.0)
+        if (
+            self.prev_fuel is None or 
+            self.prev_avg_tyre_wear is None or 
+            self.prev_distance_traveled is None
+        ):
+            return self.get_reward(state, actions_diff)
 
-        # Fallback for first step
-        if self.prev_fuel is None or self.prev_avg_tyre_wear is None:
-            return np.array([progress / 300.0])  # Basic reward if no prior
+        # Distance progressed since last step
+        dist_traveled = state.get("distanceTraveled", 0.0)
+        progress = max(dist_traveled - self.prev_distance_traveled, 0.0)
 
-        fuel_used = self.prev_fuel - fuel
-        tyre_used = self.prev_avg_tyre_wear - tyre_wear
-        resource_used = fuel_used + tyre_used + 1e-5  # prevent div by 0
+        fuel_used = self.prev_fuel - state.get("fuel", 1.0)
+        tire_used = self.prev_avg_tyre_wear - state.get("avg_tyre_wear", 1.0)
+        resource_used = fuel_used + tire_used + 1e-5
 
         efficiency = progress / resource_used
-        r = 0.001 * efficiency  # normalize
-        return np.array([r])
+        reward = np.log1p(efficiency) / 10.0  # log-smooth to avoid explosion
+        return np.array([reward])
+
 
     def recover_car(self):
         logger.info("Recover car")
