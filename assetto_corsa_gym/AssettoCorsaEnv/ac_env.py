@@ -702,9 +702,11 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
         tire_used = self.prev_avg_tyre_wear - state.get("avg_tyre_wear", 1.0)
         resource_used = fuel_used + tire_used + 1e-5
 
+        base_r = self.get_reward(state, actions_diff)
         efficiency = progress / resource_used
-        reward = np.log1p(efficiency) / 10.0  # log-smooth to avoid explosion
-        return np.array([reward])
+        log_eff = np.log1p(efficiency) / 100.0
+        reward = 0.5 * base_r + 0.5 * log_eff
+
 
 
     def recover_car(self):
