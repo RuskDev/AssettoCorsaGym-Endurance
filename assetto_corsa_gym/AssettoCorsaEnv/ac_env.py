@@ -677,6 +677,7 @@ class AssettoCorsaEnv(Env, gym_utils.EzPickle):
 
         fuel_used = self.prev_fuel - fuel
         tyre_used = self.prev_avg_tyre_wear - tyre_wear
+        print(f"fuel_used: {fuel_used:.5f}, tyre_used: {tyre_used:.5f}")
 
         # Hyperparameters
         alpha = self.fuel_penaly_alpha   # Fuel penalty coefficient
