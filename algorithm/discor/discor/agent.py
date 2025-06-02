@@ -282,6 +282,22 @@ class Agent:
                         step_count += 1
                         lap_now = self._test_env.states[-1].get("LapCount", prev_lap)
 
+                        if self.wandb_logger:
+                            self.wandb_logger.log({
+                                "step": step_count,
+                                "fuel": self._test_env.states[-1].get("fuel", 1.0),
+                                "avg_tyre_wear": self._test_env.states[-1].get("avg_tyre_wear", 1.0),
+                                "tyre_wear_fl": self._test_env.states[-1].get("tyre_wear_fl", 1.0),
+                                "tyre_wear_fr": self._test_env.states[-1].get("tyre_wear_fr", 1.0),
+                                "tyre_wear_rl": self._test_env.states[-1].get("tyre_wear_rl", 1.0),
+                                "tyre_wear_rr": self._test_env.states[-1].get("tyre_wear_rr", 1.0),
+                                "speed_kmh": self._test_env.states[-1].get("speed", 0.0) * 3.6,
+                                "lap_dist": self._test_env.states[-1].get("LapDist", 0.0),
+                                "distance_traveled": self._test_env.states[-1].get("distanceTraveled", 0.0),
+                                
+                            })
+
+
                         if lap_now > prev_lap:
                             fuel_now = self._test_env.states[-1].get("fuel", prev_fuel)
                             tyre_now = self._test_env.states[-1].get("avg_tyre_wear", prev_tyre)
