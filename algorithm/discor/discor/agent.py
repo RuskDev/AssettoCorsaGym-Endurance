@@ -250,6 +250,7 @@ class Agent:
     def evaluate(self, endurance_mode=False):
         total_return = 0.0
         all_ep_stats = []
+        step_count = 0
 
         try:
             for episode_idx in range(self._num_eval_episodes):
@@ -261,7 +262,6 @@ class Agent:
                     fuel_start = self._test_env.states[-1].get("fuel", 1.0)
                     tyre_start = self._test_env.states[-1].get("avg_tyre_wear", 1.0)
                     lap_start = self._test_env.states[-1].get("LapCount", 0)
-                    step_count = 0
                     fuel_used_per_lap = []
                     tyre_used_per_lap = []
                     lap_times = []
