@@ -264,6 +264,7 @@ class Agent:
                     prev_lap = lap_start
                     prev_fuel = self._test_env.states[-1].get("fuel", 1.0)
                     prev_tyre = self._test_env.states[-1].get("avg_tyre_wear", 1.0)
+                    lap_time = 0.0  # no lap completed yet
 
                 while not done:
                     action, entropies = self._algo.exploit(state)
@@ -275,6 +276,19 @@ class Agent:
                     if endurance_mode:
                         step_count += 1
                         lap_now = self._test_env.states[-1].get("LapCount", prev_lap)
+
+                        # Update lap time if lap changed
+                        if lap_now > prev_lap:
+                            lap_time = time.time() - last_lap_time
+                            last_lap_time = time.time()
+                            prev_lap = lap_now
+
+                            if self.wandb_logger:
+                                self.wandb_logger.log({
+                                    "lap_time": lap_time,
+                                    "lap_idx": lap_now,
+                                    "step": step_count
+                                })
 
                         # Log per-step to WandB
                         if self.wandb_logger:
@@ -289,6 +303,7 @@ class Agent:
                                 "speed_kmh": self._test_env.states[-1].get("speed", 0.0) * 3.6,
                                 "lap_dist": self._test_env.states[-1].get("LapDist", 0.0),
                                 "distance_traveled": self._test_env.states[-1].get("distanceTraveled", 0.0),
+                                "lap_time": lap_time,
                             })
 
                         # Save per-step raw data to CSV log
@@ -303,7 +318,8 @@ class Agent:
                             "speed_kmh": self._test_env.states[-1].get("speed", 0.0) * 3.6,
                             "lap_dist": self._test_env.states[-1].get("LapDist", 0.0),
                             "distance_traveled": self._test_env.states[-1].get("distanceTraveled", 0.0),
-                            "lap": self._test_env.states[-1].get("LapCount", prev_lap),
+                            "lap": lap_now,
+                            "lap_time": lap_time,
                             "reward": reward,
                         })
 
