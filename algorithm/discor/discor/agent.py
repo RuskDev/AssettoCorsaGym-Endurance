@@ -249,8 +249,8 @@ class Agent:
 
     def evaluate(self, endurance_mode=False):
         total_return = 0.0
-        all_ep_stats = []
         step_count = 0
+        per_step_logs = []
 
         try:
             for episode_idx in range(self._num_eval_episodes):
@@ -259,17 +259,11 @@ class Agent:
                 done = False
 
                 if endurance_mode:
-                    fuel_start = self._test_env.states[-1].get("fuel", 1.0)
-                    tyre_start = self._test_env.states[-1].get("avg_tyre_wear", 1.0)
                     lap_start = self._test_env.states[-1].get("LapCount", 0)
-                    fuel_used_per_lap = []
-                    tyre_used_per_lap = []
-                    lap_times = []
                     last_lap_time = time.time()
-
                     prev_lap = lap_start
-                    prev_fuel = fuel_start
-                    prev_tyre = tyre_start
+                    prev_fuel = self._test_env.states[-1].get("fuel", 1.0)
+                    prev_tyre = self._test_env.states[-1].get("avg_tyre_wear", 1.0)
 
                 while not done:
                     action, entropies = self._algo.exploit(state)
@@ -282,6 +276,7 @@ class Agent:
                         step_count += 1
                         lap_now = self._test_env.states[-1].get("LapCount", prev_lap)
 
+                        # Log per-step to WandB
                         if self.wandb_logger:
                             self.wandb_logger.log({
                                 "step": step_count,
@@ -294,99 +289,39 @@ class Agent:
                                 "speed_kmh": self._test_env.states[-1].get("speed", 0.0) * 3.6,
                                 "lap_dist": self._test_env.states[-1].get("LapDist", 0.0),
                                 "distance_traveled": self._test_env.states[-1].get("distanceTraveled", 0.0),
-                                
                             })
 
+                        # Save per-step raw data to CSV log
+                        per_step_logs.append({
+                            "step": step_count,
+                            "fuel": self._test_env.states[-1].get("fuel", 1.0),
+                            "avg_tyre_wear": self._test_env.states[-1].get("avg_tyre_wear", 1.0),
+                            "tyre_wear_fl": self._test_env.states[-1].get("tyre_wear_fl", 1.0),
+                            "tyre_wear_fr": self._test_env.states[-1].get("tyre_wear_fr", 1.0),
+                            "tyre_wear_rl": self._test_env.states[-1].get("tyre_wear_rl", 1.0),
+                            "tyre_wear_rr": self._test_env.states[-1].get("tyre_wear_rr", 1.0),
+                            "speed_kmh": self._test_env.states[-1].get("speed", 0.0) * 3.6,
+                            "lap_dist": self._test_env.states[-1].get("LapDist", 0.0),
+                            "distance_traveled": self._test_env.states[-1].get("distanceTraveled", 0.0),
+                            "lap": self._test_env.states[-1].get("LapCount", prev_lap),
+                            "reward": reward,
+                        })
 
-                        if lap_now > prev_lap:
-                            fuel_now = self._test_env.states[-1].get("fuel", prev_fuel)
-                            tyre_now = self._test_env.states[-1].get("avg_tyre_wear", prev_tyre)
-                            fuel_used = prev_fuel - fuel_now
-                            tyre_used = prev_tyre - tyre_now
-                            fuel_used_per_lap.append(fuel_used)
-                            tyre_used_per_lap.append(tyre_used)
-
-                            lap_time = time.time() - last_lap_time
-                            lap_times.append(lap_time)
-
-                            # ✅ WandB: Log each lap's usage as an individual point
-                            if self.wandb_logger:
-                                print(f"Logging lap data: {lap_now - lap_start}, fuel_used: {fuel_used}, tyre_used: {tyre_used}, lap_time: {lap_time}")
-                                self.wandb_logger.log({
-                                    "step": step_count,
-                                    "fuel_used": fuel_used,
-                                    "tyre_used": tyre_used,
-                                    "lap_time": lap_time,
-                                    "episode_idx": episode_idx,
-                                    "lap_idx": lap_now - lap_start,
-                                })
-
-
-                            last_lap_time = time.time()
-                            prev_fuel = fuel_now
-                            prev_tyre = tyre_now
-                            prev_lap = lap_now
                 print("Episode Done")
                 total_return += episode_return
-
-                if endurance_mode:
-                    fuel_end = self._test_env.states[-1].get("fuel", fuel_start)
-                    tyre_end = self._test_env.states[-1].get("avg_tyre_wear", tyre_start)
-                    fuel_used_total = fuel_start - fuel_end
-                    tyre_used_total = tyre_start - tyre_end
-
-                    env_ep_stats = {
-                        "episode_idx": episode_idx,
-                        "episode_return": episode_return,
-                        "fuel_start": fuel_start,
-                        "fuel_end": fuel_end,
-                        "fuel_used_total": fuel_used_total,
-                        "tyre_start": tyre_start,
-                        "tyre_end": tyre_end,
-                        "tyre_used_total": tyre_used_total,
-                        "steps": step_count,
-                        "fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
-                        "tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
-                        "num_laps": prev_lap - lap_start,
-                        "fuel_used_per_lap": fuel_used_per_lap,
-                        "tyre_used_per_lap": tyre_used_per_lap,
-                        "lap_times": lap_times,
-                    }
-                    all_ep_stats.append(env_ep_stats)
-                    print(f"Episode {episode_idx}: Return: {episode_return:.2f}, Fuel used: {fuel_used_total:.2f}, Tyre used: {tyre_used_total:.2f}, Steps: {step_count}, Laps: {prev_lap - lap_start}")
-
-                    if self.wandb_logger:
-                        print("Logging episode data")
-                        self.wandb_logger.log({
-                            "step": episode_idx,
-                            "episode_idx": episode_idx,
-                            "return": episode_return,
-                            "fuel_used_total": fuel_used_total,
-                            "tyre_used_total": tyre_used_total,
-                            "steps": step_count,
-                            "laps": prev_lap - lap_start,
-                            "fuel_used_per_step": fuel_used_total / step_count if step_count else 0,
-                            "tyre_used_per_step": tyre_used_total / step_count if step_count else 0,
-                            "fuel_used_per_lap": fuel_used_per_lap,
-                            "tyre_used_per_lap": tyre_used_per_lap,
-                            "lap_times": lap_times,
-                        })
 
         except Exception as e:
             logger.exception(f"Evaluation failed with error: {e}")
 
         finally:
             if endurance_mode:
-                filename = 'eval_endurance.csv'
-                df = pd.DataFrame(all_ep_stats)
+                filename = 'eval_endurance_steps.csv'
+                df = pd.DataFrame(per_step_logs)
                 df.to_csv(os.path.join(self._log_dir, filename), index=False)
-                logger.info(f"Saved endurance evaluation results to {filename}")
-            else:
-                env_ep_stats = self._env.close()
-                pd.DataFrame([env_ep_stats]).to_csv(os.path.join(self._log_dir, 'eval_summary.csv'), index=None)
-                logger.info(f"Saved normal evaluation results to eval_summary.csv")
+                logger.info(f"Saved per-step endurance data to {filename}")
 
             return total_return
+
 
 
     def __del__(self):
